@@ -99,7 +99,7 @@ namespace VRCGroupSwitcher.Services
 
                 // バナーテキスト
                 var ft = new FormattedText(
-                    "NEO TOKYO EXPLORERS",
+                    "TEST GROUP",
                     System.Globalization.CultureInfo.InvariantCulture,
                     FlowDirection.LeftToRight,
                     new Typeface(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.Bold, FontStretches.Normal),
@@ -109,7 +109,7 @@ namespace VRCGroupSwitcher.Services
                 dc.DrawText(ft, new Point(50, (h - ft.Height) / 2));
 
                 var subFt = new FormattedText(
-                    "OFFICIAL VRChat COMMUNITY [NTEX]",
+                    "TEST / DEMO COMMUNITY [TEST.0000]",
                     System.Globalization.CultureInfo.InvariantCulture,
                     FlowDirection.LeftToRight,
                     new Typeface(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.SemiBold, FontStretches.Normal),
@@ -146,7 +146,7 @@ namespace VRCGroupSwitcher.Services
                 dc.DrawEllipse(bg, null, new Point(size / 2.0, size / 2.0), size / 2.0, size / 2.0);
 
                 var ft = new FormattedText(
-                    "🦊",
+                    "👤",
                     System.Globalization.CultureInfo.InvariantCulture,
                     FlowDirection.LeftToRight,
                     new Typeface("Segoe UI Emoji"),

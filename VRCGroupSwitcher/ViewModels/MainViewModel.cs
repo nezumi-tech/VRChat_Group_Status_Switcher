@@ -841,7 +841,7 @@ namespace VRCGroupSwitcher.ViewModels
             var apiClient = new VRChatApiClient();
             var logWatcher = new VRChatLogWatcher();
             var settingsService = new SettingsService();
-            settingsService.CurrentSettings.DefaultGroupName = "Casual Chill Club [CHIL]";
+            settingsService.CurrentSettings.DefaultGroupName = "Default group [DFLT]";
             settingsService.CurrentSettings.DefaultStatus = "active";
 
             var switchingService = new SwitchingService(apiClient, logWatcher, settingsService);
@@ -851,81 +851,81 @@ namespace VRCGroupSwitcher.ViewModels
             {
                 IsLoggedIn = true,
                 IsVRChatActive = true,
-                CurrentWorldName = "[JP] Cyber Lounge Horizon",
-                CurrentWorldId = "wrld_mock_horizon_999",
+                CurrentWorldName = "テストワールド",
+                CurrentWorldId = "wrld_test_00000000",
                 CurrentInstanceType = "Group+",
-                DetectedGroupId = "grp_mock_001",
+                DetectedGroupId = "grp_test_0000",
                 AutoSwitchEnabled = true,
                 HasUpdateNotification = false
             };
 
             vm.CurrentUser = new VRCUser
             {
-                Id = "usr_mock_12345",
-                DisplayName = "Kaito / カイト",
-                Username = "kaito_vr",
+                Id = "usr_test_00000",
+                DisplayName = "Test user / テストユーザー",
+                Username = "test_user",
                 Status = "join me",
-                StatusDescription = "集会イベント参加中 🌟 | Auto switched",
+                StatusDescription = "テストイベント参加中 🌟 | Auto switched",
                 CurrentAvatarThumbnailImageUrl = mockAvatarPath ?? ""
             };
 
             var mockGroup = new VRCGroup
             {
-                Id = "grp_mock_001",
-                Name = "Neo Tokyo Explorers [NTEX]",
-                ShortCode = "NTEX",
-                Discriminator = "8821",
+                Id = "grp_test_0000",
+                Name = "Test group [TEST]",
+                ShortCode = "TEST",
+                Discriminator = "0000",
                 BannerUrl = mockBannerPath ?? ""
             };
             vm.CurrentRepresentedGroup = mockGroup;
             vm.Groups.Add(mockGroup);
-            vm.Groups.Add(new VRCGroup { Id = "grp_mock_002", Name = "Midnight Bar Lounge [MBL]", ShortCode = "MBL", Discriminator = "3341" });
-            vm.Groups.Add(new VRCGroup { Id = "grp_mock_003", Name = "Casual Chill Club [CHIL]", ShortCode = "CHIL", Discriminator = "5512" });
+            vm.Groups.Add(new VRCGroup { Id = "grp_test_0001", Name = "Default group [DFLT]", ShortCode = "DFLT", Discriminator = "0000" });
+            vm.Groups.Add(new VRCGroup { Id = "grp_test_0002", Name = "Sub group 2 [SUB2]", ShortCode = "SUB2", Discriminator = "0000" });
 
             vm.CustomRules.Clear();
             vm.CustomRules.Add(new RuleConfig
             {
-                Id = "rule_mock_1",
-                Name = "定期集会イベント",
+                Id = "rule_test_1",
+                Name = "テスト集会イベント",
                 TargetType = RuleTargetType.GroupInstance,
-                TargetValue = "grp_mock_001",
-                TargetGroupId = "grp_mock_001",
-                TargetGroupName = "Neo Tokyo Explorers [NTEX]",
+                TargetValue = "grp_test_0000",
+                TargetGroupId = "grp_test_0000",
+                TargetGroupName = "Test group [TEST]",
                 TargetStatus = "unchanged",
-                TargetStatusDescription = "集会イベント参加中 🌟",
+                TargetStatusDescription = "テストイベント参加中 🌟",
                 IsEnabled = true
             });
             vm.CustomRules.Add(new RuleConfig
             {
-                Id = "rule_mock_2",
-                Name = "バー集会ワールド",
+                Id = "rule_test_2",
+                Name = "テスト会場ワールド",
                 TargetType = RuleTargetType.WorldId,
-                TargetValue = "wrld_bar_lounge",
-                TargetGroupId = "grp_mock_002",
-                TargetGroupName = "Midnight Bar Lounge [MBL]",
+                TargetValue = "wrld_test_event",
+                TargetGroupId = "grp_test_0001",
+                TargetGroupName = "Default group [DFLT]",
                 TargetStatus = "ask me",
-                TargetStatusDescription = "バー集会中 🍸",
+                TargetStatusDescription = "テスト集会中 🍸",
                 IsEnabled = true
             });
             vm.CustomRules.Add(new RuleConfig
             {
-                Id = "rule_mock_3",
-                Name = "作業中 (集中)",
+                Id = "rule_test_3",
+                Name = "テスト用作業部屋",
                 TargetType = RuleTargetType.WorldName,
-                TargetValue = "Study Room",
+                TargetValue = "Test Study Room",
                 TargetGroupId = "",
                 TargetGroupName = "(バナー掲示なし)",
                 TargetStatus = "busy",
-                TargetStatusDescription = "作業集中モード",
+                TargetStatusDescription = "テスト作業集中モード",
                 IsEnabled = true
             });
 
             vm.ActivityLogs.Clear();
             vm.ActivityLogs.Add(new ActivityLogItem { Timestamp = DateTime.Now.AddMinutes(-5), Level = LogLevel.Info, Message = "アプリケーションを起動しました。" });
-            vm.ActivityLogs.Add(new ActivityLogItem { Timestamp = DateTime.Now.AddMinutes(-4), Level = LogLevel.Success, Message = "ログインに成功しました (Kaito / カイト)" });
-            vm.ActivityLogs.Add(new ActivityLogItem { Timestamp = DateTime.Now.AddMinutes(-2), Level = LogLevel.Info, Message = "ワールド「[JP] Cyber Lounge Horizon」に入場しました。" });
-            vm.ActivityLogs.Add(new ActivityLogItem { Timestamp = DateTime.Now.AddMinutes(-2), Level = LogLevel.Success, Message = "グループインスタンス(Group+)を検知: 「Neo Tokyo Explorers」を自動掲示しました。" });
-            vm.ActivityLogs.Add(new ActivityLogItem { Timestamp = DateTime.Now.AddMinutes(-2), Level = LogLevel.Success, Message = "ステータスメッセージを「集会イベント参加中 🌟」に更新しました。" });
+            vm.ActivityLogs.Add(new ActivityLogItem { Timestamp = DateTime.Now.AddMinutes(-4), Level = LogLevel.Success, Message = "ログインに成功しました (Test user / テストユーザー)" });
+            vm.ActivityLogs.Add(new ActivityLogItem { Timestamp = DateTime.Now.AddMinutes(-2), Level = LogLevel.Info, Message = "ワールド「テストワールド」に入場しました。" });
+            vm.ActivityLogs.Add(new ActivityLogItem { Timestamp = DateTime.Now.AddMinutes(-2), Level = LogLevel.Success, Message = "グループインスタンス(Group+)を検知: 「Test group」を自動掲示しました。" });
+            vm.ActivityLogs.Add(new ActivityLogItem { Timestamp = DateTime.Now.AddMinutes(-2), Level = LogLevel.Success, Message = "ステータスメッセージを「テストイベント参加中 🌟」に更新しました。" });
 
             return vm;
         }
