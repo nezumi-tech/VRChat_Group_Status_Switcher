@@ -32,13 +32,31 @@ VRChatのグループイベント参加時に**グループバナー（掲示グ
 
 ---
 
-## 🚀 起動方法
+## 🛠️ ビルド・実行方法
 
-### 方法 1: `start.bat` から起動
-フォルダ内の `start.bat` をダブルクリックするだけでアプリが起動します。
+### 必要な環境
+- [.NET 10.0 SDK](https://dotnet.microsoft.com/download) 以降
+- Windows 10 / 11 (x64)
 
-### 方法 2: 実行ファイルを直接起動
-`PublishApp\VRCGroupSwitcher.exe` を直接ダブルクリックして起動します。
+### 開発・通常実行
+リポジトリをクローン後、プロジェクトディレクトリで以下を実行します：
+
+```powershell
+cd VRCGroupSwitcher
+dotnet run
+```
+
+### 単一実行ファイル (.exe) のビルド
+配布用の軽量な単一実行ファイルとしてビルドする場合は、以下のコマンドを実行します：
+
+```powershell
+cd VRCGroupSwitcher
+dotnet publish -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o ..\PublishApp
+```
+
+- 出力先: `PublishApp\VRCGroupSwitcher.exe`
+- ※実行環境に [.NET 10.0 Desktop Runtime](https://dotnet.microsoft.com/download) が必要です（サイズは約700KBと非常に軽量になります）。
+- ランタイムを同梱した自己完結型（Self-contained）にしたい場合は、`--self-contained true` を指定してください。
 
 ---
 
