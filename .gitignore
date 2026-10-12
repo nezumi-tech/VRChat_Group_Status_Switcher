@@ -1,6 +1,9 @@
 # User request: Ignore PublishApp directory
 PublishApp/
 
+# User request: Ignore booth directory
+booth/
+
 # Local .NET tools
 .dotnet/
 
