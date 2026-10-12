@@ -673,6 +673,10 @@
                                     <StackPanel>
                                         <TextBlock Text="ℹ️ アプリケーション情報" FontWeight="Bold" FontSize="14" Foreground="#38BDF8" Margin="0,0,0,12"/>
                                         <Grid Margin="0,2">
+                                            <TextBlock Text="アプリケーション名" Foreground="#94A3B8" FontSize="12"/>
+                                            <TextBlock Text="VRC Group Switcher" Foreground="#F8FAFC" FontSize="12" HorizontalAlignment="Right" FontWeight="SemiBold"/>
+                                        </Grid>
+                                        <Grid Margin="0,6,0,2">
                                             <TextBlock Text="バージョン" Foreground="#94A3B8" FontSize="12"/>
                                             <TextBlock Text="{Binding AppVersion, StringFormat='v{0}'}" Foreground="#F8FAFC" FontSize="12" HorizontalAlignment="Right" FontWeight="SemiBold"/>
                                         </Grid>

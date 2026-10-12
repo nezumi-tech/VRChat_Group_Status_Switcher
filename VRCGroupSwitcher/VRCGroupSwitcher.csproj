@@ -8,6 +8,9 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>app.ico</ApplicationIcon>
+    <AssemblyTitle>VRC Group Switcher</AssemblyTitle>
+    <Product>VRC Group Switcher</Product>
+    <Description>VRC Group Switcher</Description>
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>false</SelfContained>
     <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
