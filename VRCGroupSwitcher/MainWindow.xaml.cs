@@ -103,6 +103,13 @@ namespace VRCGroupSwitcher
             // Context Menu
             var contextMenu = new System.Windows.Forms.ContextMenuStrip();
 
+            var titleItem = new System.Windows.Forms.ToolStripMenuItem($"VRC Group Switcher v{_viewModel.AppVersion}")
+            {
+                Enabled = false
+            };
+            contextMenu.Items.Add(titleItem);
+            contextMenu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
+
             var showItem = new System.Windows.Forms.ToolStripMenuItem("ウィンドウを表示 (&O)");
             showItem.Click += (s, e) => ShowAndActivate();
             contextMenu.Items.Add(showItem);

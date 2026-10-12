@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
@@ -21,6 +22,10 @@ namespace VRCGroupSwitcher.ViewModels
         private readonly Dispatcher _dispatcher;
 
         public event PropertyChangedEventHandler? PropertyChanged;
+
+        // Version info
+        public string AppVersion { get; } = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.0";
+        public string WindowTitle => $"VRC Group Switcher v{AppVersion}";
 
         // Observable collections for UI
         public ObservableCollection<VRCGroup> Groups { get; } = new();
