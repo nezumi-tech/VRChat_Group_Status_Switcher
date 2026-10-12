@@ -64,6 +64,36 @@ namespace VRCGroupSwitcher
             if (_isInitialized) return;
             _isInitialized = true;
             await _viewModel.InitializeAsync();
+            _ = CheckForUpdatesOnStartupAsync();
+        }
+
+        private async System.Threading.Tasks.Task CheckForUpdatesOnStartupAsync()
+        {
+            try
+            {
+                bool hasUpdate = await _viewModel.CheckForUpdatesAsync(isManual: false);
+                if (hasUpdate)
+                {
+                    // アップデートがある場合はタスクトレイ格納状態からウィンドウを開いて通知
+                    Dispatcher.Invoke(() =>
+                    {
+                        ShowAndActivate();
+
+                        if (_notifyIcon != null)
+                        {
+                            _notifyIcon.ShowBalloonTip(
+                                5000,
+                                "アップデートのお知らせ",
+                                $"新しいバージョン (v{_viewModel.LatestVersion}) が公開されています。BOOTHよりダウンロードしてください。",
+                                System.Windows.Forms.ToolTipIcon.Info);
+                        }
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[UpdateCheck] Startup check failed: {ex.Message}");
+            }
         }
 
         private void InitializeTrayIcon()
@@ -351,6 +381,23 @@ namespace VRCGroupSwitcher
         private void BtnClearLogs_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.ClearLogs();
+        }
+        #endregion
+
+        #region Update Notification
+        private void BtnOpenBooth_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.OpenBoothPage();
+        }
+
+        private void BtnDismissUpdate_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.DismissUpdateNotification();
+        }
+
+        private async void BtnCheckUpdateManual_Click(object sender, RoutedEventArgs e)
+        {
+            await _viewModel.CheckForUpdatesAsync(isManual: true);
         }
         #endregion
     }

@@ -14,6 +14,7 @@
     <Window.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVis"/>
         <converters:BoolToVisibilityConverter x:Key="InvertBoolToVis" Invert="True"/>
+        <converters:InverseBoolConverter x:Key="InverseBool"/>
         <converters:NullOrEmptyToVisibilityConverter x:Key="NullToVis"/>
         <converters:NullOrEmptyToVisibilityConverter x:Key="InvertNullToVis" Invert="True"/>
         <converters:StatusColorConverter x:Key="StatusColor"/>
@@ -97,8 +98,43 @@
     </Window.Resources>
 
     <Grid>
-        <!-- Main Application Shell (Visible when logged in) -->
-        <Grid Visibility="{Binding IsLoggedIn, Converter={StaticResource BoolToVis}}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- TOP UPDATE BANNER (Visible across whole app when update is available) -->
+        <Border Grid.Row="0" Background="#0F172A" BorderBrush="#0284C7" BorderThickness="0,0,0,2" Padding="20,10"
+                Visibility="{Binding HasUpdateNotification, Converter={StaticResource BoolToVis}}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="🎉" FontSize="20" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="新しいバージョンが公開されました！" FontWeight="Bold" FontSize="13" Foreground="#F8FAFC"/>
+                        <Border Background="#0284C7" CornerRadius="4" Padding="6,1" Margin="8,0,0,0">
+                            <TextBlock Text="{Binding LatestVersion, StringFormat='v{0}'}" FontWeight="Bold" FontSize="11" Foreground="#FFFFFF"/>
+                        </Border>
+                    </StackPanel>
+                    <TextBlock Text="BOOTHにて最新版をダウンロードいただけます。" FontSize="11" Foreground="#94A3B8" Margin="0,2,0,0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Style="{StaticResource PrimaryButton}" Content="📦 BOOTHでダウンロード" Height="32" Padding="14,0" FontSize="12" Click="BtnOpenBooth_Click" Margin="0,0,8,0"/>
+                    <Button Style="{StaticResource SecondaryButton}" Content="✕" Width="32" Height="32" Padding="0" FontSize="12" Click="BtnDismissUpdate_Click" ToolTip="閉じる"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Body Area -->
+        <Grid Grid.Row="1">
+            <!-- Main Application Shell (Visible when logged in) -->
+            <Grid Visibility="{Binding IsLoggedIn, Converter={StaticResource BoolToVis}}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="230"/>
                 <ColumnDefinition Width="*"/>
@@ -644,6 +680,19 @@
                                             <TextBlock Text="ランタイム環境" Foreground="#94A3B8" FontSize="12"/>
                                             <TextBlock Text=".NET 10.0 (WPF / win-x64)" Foreground="#64748B" FontSize="12" HorizontalAlignment="Right"/>
                                         </Grid>
+                                        <Separator Background="#1E293B" Margin="0,10"/>
+                                        <Grid Margin="0,2">
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="アップデート状況" Foreground="#94A3B8" FontSize="12"/>
+                                                <TextBlock Text="{Binding UpdateCheckStatusText}" Foreground="#38BDF8" FontSize="11" Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                                <Button Style="{StaticResource SecondaryButton}" Content="🔄 更新を確認" Height="30" Padding="10,0" FontSize="11"
+                                                        Click="BtnCheckUpdateManual_Click" IsEnabled="{Binding IsCheckingUpdate, Converter={StaticResource InverseBool}}" Margin="0,0,6,0"/>
+                                                <Button Style="{StaticResource PrimaryButton}" Content="📦 BOOTHを開く" Height="30" Padding="10,0" FontSize="11"
+                                                        Click="BtnOpenBooth_Click"/>
+                                            </StackPanel>
+                                        </Grid>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
@@ -716,6 +765,7 @@
                     </Border>
                 </StackPanel>
             </Border>
+        </Grid>
         </Grid>
     </Grid>
 </Window>

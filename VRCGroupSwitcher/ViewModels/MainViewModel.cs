@@ -19,13 +19,57 @@ namespace VRCGroupSwitcher.ViewModels
         private readonly VRChatLogWatcher _logWatcher;
         private readonly SettingsService _settingsService;
         private readonly SwitchingService _switchingService;
+        private readonly UpdateCheckerService _updateCheckerService;
         private readonly Dispatcher _dispatcher;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        // Version info
-        public string AppVersion { get; } = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.0";
+        // Version info (using InformationalVersion)
+        public string AppVersion { get; } = UpdateCheckerService.GetCurrentInformationalVersion();
         public string WindowTitle => $"VRC Group Switcher v{AppVersion}";
+
+        // Update Notification Properties
+        private bool _hasUpdateNotification;
+        public bool HasUpdateNotification
+        {
+            get => _hasUpdateNotification;
+            set => SetField(ref _hasUpdateNotification, value);
+        }
+
+        private string _latestVersion = "";
+        public string LatestVersion
+        {
+            get => _latestVersion;
+            set => SetField(ref _latestVersion, value);
+        }
+
+        private string _updateReleaseTitle = "";
+        public string UpdateReleaseTitle
+        {
+            get => _updateReleaseTitle;
+            set => SetField(ref _updateReleaseTitle, value);
+        }
+
+        private string _boothDownloadUrl = UpdateCheckerService.DefaultBoothUrl;
+        public string BoothDownloadUrl
+        {
+            get => _boothDownloadUrl;
+            set => SetField(ref _boothDownloadUrl, value);
+        }
+
+        private bool _isCheckingUpdate;
+        public bool IsCheckingUpdate
+        {
+            get => _isCheckingUpdate;
+            set => SetField(ref _isCheckingUpdate, value);
+        }
+
+        private string _updateCheckStatusText = "確認待機中";
+        public string UpdateCheckStatusText
+        {
+            get => _updateCheckStatusText;
+            set => SetField(ref _updateCheckStatusText, value);
+        }
 
         // Observable collections for UI
         public ObservableCollection<VRCGroup> Groups { get; } = new();
@@ -376,12 +420,14 @@ namespace VRCGroupSwitcher.ViewModels
             VRChatApiClient apiClient,
             VRChatLogWatcher logWatcher,
             SettingsService settingsService,
-            SwitchingService switchingService)
+            SwitchingService switchingService,
+            UpdateCheckerService? updateCheckerService = null)
         {
             _apiClient = apiClient;
             _logWatcher = logWatcher;
             _settingsService = settingsService;
             _switchingService = switchingService;
+            _updateCheckerService = updateCheckerService ?? new UpdateCheckerService();
             _dispatcher = Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
 
             // Sync startup registry status if needed
@@ -652,6 +698,72 @@ namespace VRCGroupSwitcher.ViewModels
         public void ClearLogs()
         {
             ActivityLogs.Clear();
+        }
+
+        public async Task<bool> CheckForUpdatesAsync(bool isManual = false)
+        {
+            if (IsCheckingUpdate) return false;
+            IsCheckingUpdate = true;
+            UpdateCheckStatusText = "更新を確認中...";
+
+            try
+            {
+                var info = await _updateCheckerService.CheckForUpdatesAsync();
+                if (!string.IsNullOrEmpty(info.ErrorMessage))
+                {
+                    UpdateCheckStatusText = "確認失敗";
+                    if (isManual)
+                    {
+                        AddLog($"アップデート確認に失敗しました: {info.ErrorMessage}", LogLevel.Warning);
+                    }
+                    return false;
+                }
+
+                LatestVersion = info.LatestVersion;
+                UpdateReleaseTitle = info.ReleaseTitle;
+                BoothDownloadUrl = info.BoothDownloadUrl;
+
+                if (info.IsUpdateAvailable)
+                {
+                    HasUpdateNotification = true;
+                    UpdateCheckStatusText = $"v{info.LatestVersion} に更新可能";
+                    AddLog($"新しいバージョン (v{info.LatestVersion}) が利用可能です！BOOTHよりダウンロードしてください。", LogLevel.Warning);
+                    return true;
+                }
+                else
+                {
+                    HasUpdateNotification = false;
+                    UpdateCheckStatusText = "最新版です";
+                    if (isManual)
+                    {
+                        AddLog($"現在のバージョン (v{AppVersion}) は最新です。", LogLevel.Success);
+                    }
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                UpdateCheckStatusText = "確認エラー";
+                if (isManual)
+                {
+                    AddLog($"アップデート確認エラー: {ex.Message}", LogLevel.Error);
+                }
+                return false;
+            }
+            finally
+            {
+                IsCheckingUpdate = false;
+            }
+        }
+
+        public void OpenBoothPage()
+        {
+            UpdateCheckerService.OpenBoothDownloadPage(BoothDownloadUrl);
+        }
+
+        public void DismissUpdateNotification()
+        {
+            HasUpdateNotification = false;
         }
 
         private void OnInstanceChanged(VRCInstanceInfo info)
