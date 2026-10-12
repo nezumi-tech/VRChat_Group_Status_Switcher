@@ -39,6 +39,26 @@ public partial class App : System.Windows.Application
 
         try
         {
+            // プレビュー画像生成モードのチェック
+            foreach (var arg in e.Args)
+            {
+                if (arg.Equals("--generate-preview", StringComparison.OrdinalIgnoreCase) ||
+                    arg.Equals("--mock-screenshot", StringComparison.OrdinalIgnoreCase))
+                {
+                    string outPath = "booth/dashboard_preview.png";
+                    for (int i = 0; i < e.Args.Length; i++)
+                    {
+                        if ((e.Args[i].Equals("--output", StringComparison.OrdinalIgnoreCase) || e.Args[i].Equals("-o", StringComparison.OrdinalIgnoreCase)) && i + 1 < e.Args.Length)
+                        {
+                            outPath = e.Args[i + 1];
+                        }
+                    }
+                    VRCGroupSwitcher.Services.MockPreviewGenerator.GenerateDashboardScreenshot(outPath);
+                    Shutdown(0);
+                    return;
+                }
+            }
+
             bool startInTray = false;
             foreach (var arg in e.Args)
             {

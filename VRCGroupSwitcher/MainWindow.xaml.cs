@@ -25,6 +25,20 @@ namespace VRCGroupSwitcher
         {
         }
 
+        public MainWindow(MainViewModel mockViewModel, bool isMockMode)
+        {
+            InitializeComponent();
+
+            _settingsService = new SettingsService();
+            _apiClient = new VRChatApiClient();
+            _logWatcher = new VRChatLogWatcher();
+            _switchingService = new SwitchingService(_apiClient, _logWatcher, _settingsService);
+
+            _viewModel = mockViewModel;
+            DataContext = _viewModel;
+            _isInitialized = true;
+        }
+
         public MainWindow(bool startInTray)
         {
             InitializeComponent();
