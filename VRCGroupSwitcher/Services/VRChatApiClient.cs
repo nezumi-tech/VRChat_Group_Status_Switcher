@@ -22,7 +22,7 @@ namespace VRCGroupSwitcher.Services
     public class VRChatApiClient : IDisposable
     {
         private const string BaseUrl = "https://api.vrchat.cloud";
-        private const string UserAgent = "VRCGroupStatusSwitcher/1.0.0 (Windows; Contact: X: @nezumi_tech)";
+        private const string UserAgent = "VRCGroupSwitcher/1.0.0 (Windows; Contact: X: @nezumi_tech)";
 
         private HttpClientHandler _handler = null!;
         private HttpClient _client = null!;

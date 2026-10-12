@@ -19,13 +19,57 @@ namespace VRCGroupSwitcher.ViewModels
         private readonly VRChatLogWatcher _logWatcher;
         private readonly SettingsService _settingsService;
         private readonly SwitchingService _switchingService;
+        private readonly UpdateCheckerService _updateCheckerService;
         private readonly Dispatcher _dispatcher;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        // Version info
-        public string AppVersion { get; } = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.0";
+        // Version info (using InformationalVersion)
+        public string AppVersion { get; } = UpdateCheckerService.GetCurrentInformationalVersion();
         public string WindowTitle => $"VRC Group Switcher v{AppVersion}";
+
+        // Update Notification Properties
+        private bool _hasUpdateNotification;
+        public bool HasUpdateNotification
+        {
+            get => _hasUpdateNotification;
+            set => SetField(ref _hasUpdateNotification, value);
+        }
+
+        private string _latestVersion = "";
+        public string LatestVersion
+        {
+            get => _latestVersion;
+            set => SetField(ref _latestVersion, value);
+        }
+
+        private string _updateReleaseTitle = "";
+        public string UpdateReleaseTitle
+        {
+            get => _updateReleaseTitle;
+            set => SetField(ref _updateReleaseTitle, value);
+        }
+
+        private string _boothDownloadUrl = UpdateCheckerService.DefaultBoothUrl;
+        public string BoothDownloadUrl
+        {
+            get => _boothDownloadUrl;
+            set => SetField(ref _boothDownloadUrl, value);
+        }
+
+        private bool _isCheckingUpdate;
+        public bool IsCheckingUpdate
+        {
+            get => _isCheckingUpdate;
+            set => SetField(ref _isCheckingUpdate, value);
+        }
+
+        private string _updateCheckStatusText = "確認待機中";
+        public string UpdateCheckStatusText
+        {
+            get => _updateCheckStatusText;
+            set => SetField(ref _updateCheckStatusText, value);
+        }
 
         // Observable collections for UI
         public ObservableCollection<VRCGroup> Groups { get; } = new();
@@ -376,12 +420,14 @@ namespace VRCGroupSwitcher.ViewModels
             VRChatApiClient apiClient,
             VRChatLogWatcher logWatcher,
             SettingsService settingsService,
-            SwitchingService switchingService)
+            SwitchingService switchingService,
+            UpdateCheckerService? updateCheckerService = null)
         {
             _apiClient = apiClient;
             _logWatcher = logWatcher;
             _settingsService = settingsService;
             _switchingService = switchingService;
+            _updateCheckerService = updateCheckerService ?? new UpdateCheckerService();
             _dispatcher = Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
 
             // Sync startup registry status if needed
@@ -654,6 +700,72 @@ namespace VRCGroupSwitcher.ViewModels
             ActivityLogs.Clear();
         }
 
+        public async Task<bool> CheckForUpdatesAsync(bool isManual = false)
+        {
+            if (IsCheckingUpdate) return false;
+            IsCheckingUpdate = true;
+            UpdateCheckStatusText = "更新を確認中...";
+
+            try
+            {
+                var info = await _updateCheckerService.CheckForUpdatesAsync();
+                if (!string.IsNullOrEmpty(info.ErrorMessage))
+                {
+                    UpdateCheckStatusText = "確認失敗";
+                    if (isManual)
+                    {
+                        AddLog($"アップデート確認に失敗しました: {info.ErrorMessage}", LogLevel.Warning);
+                    }
+                    return false;
+                }
+
+                LatestVersion = info.LatestVersion;
+                UpdateReleaseTitle = info.ReleaseTitle;
+                BoothDownloadUrl = info.BoothDownloadUrl;
+
+                if (info.IsUpdateAvailable)
+                {
+                    HasUpdateNotification = true;
+                    UpdateCheckStatusText = $"v{info.LatestVersion} に更新可能";
+                    AddLog($"新しいバージョン (v{info.LatestVersion}) が利用可能です！BOOTHよりダウンロードしてください。", LogLevel.Warning);
+                    return true;
+                }
+                else
+                {
+                    HasUpdateNotification = false;
+                    UpdateCheckStatusText = "最新版です";
+                    if (isManual)
+                    {
+                        AddLog($"現在のバージョン (v{AppVersion}) は最新です。", LogLevel.Success);
+                    }
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                UpdateCheckStatusText = "確認エラー";
+                if (isManual)
+                {
+                    AddLog($"アップデート確認エラー: {ex.Message}", LogLevel.Error);
+                }
+                return false;
+            }
+            finally
+            {
+                IsCheckingUpdate = false;
+            }
+        }
+
+        public void OpenBoothPage()
+        {
+            UpdateCheckerService.OpenBoothDownloadPage(BoothDownloadUrl);
+        }
+
+        public void DismissUpdateNotification()
+        {
+            HasUpdateNotification = false;
+        }
+
         private void OnInstanceChanged(VRCInstanceInfo info)
         {
             _dispatcher.Invoke(() =>
@@ -722,6 +834,100 @@ namespace VRCGroupSwitcher.ViewModels
         protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public static MainViewModel CreateMockViewModel(string? mockBannerPath = null, string? mockAvatarPath = null)
+        {
+            var apiClient = new VRChatApiClient();
+            var logWatcher = new VRChatLogWatcher();
+            var settingsService = new SettingsService();
+            settingsService.CurrentSettings.DefaultGroupName = "Default group [DFLT]";
+            settingsService.CurrentSettings.DefaultStatus = "active";
+
+            var switchingService = new SwitchingService(apiClient, logWatcher, settingsService);
+            var updateChecker = new UpdateCheckerService();
+
+            var vm = new MainViewModel(apiClient, logWatcher, settingsService, switchingService, updateChecker)
+            {
+                IsLoggedIn = true,
+                IsVRChatActive = true,
+                CurrentWorldName = "テストワールド",
+                CurrentWorldId = "wrld_test_00000000",
+                CurrentInstanceType = "Group+",
+                DetectedGroupId = "grp_test_0000",
+                AutoSwitchEnabled = true,
+                HasUpdateNotification = false
+            };
+
+            vm.CurrentUser = new VRCUser
+            {
+                Id = "usr_test_00000",
+                DisplayName = "Test user / テストユーザー",
+                Username = "test_user",
+                Status = "join me",
+                StatusDescription = "テストイベント参加中 🌟 | Auto switched",
+                CurrentAvatarThumbnailImageUrl = mockAvatarPath ?? ""
+            };
+
+            var mockGroup = new VRCGroup
+            {
+                Id = "grp_test_0000",
+                Name = "Test group [TEST]",
+                ShortCode = "TEST",
+                Discriminator = "0000",
+                BannerUrl = mockBannerPath ?? ""
+            };
+            vm.CurrentRepresentedGroup = mockGroup;
+            vm.Groups.Add(mockGroup);
+            vm.Groups.Add(new VRCGroup { Id = "grp_test_0001", Name = "Default group [DFLT]", ShortCode = "DFLT", Discriminator = "0000" });
+            vm.Groups.Add(new VRCGroup { Id = "grp_test_0002", Name = "Sub group 2 [SUB2]", ShortCode = "SUB2", Discriminator = "0000" });
+
+            vm.CustomRules.Clear();
+            vm.CustomRules.Add(new RuleConfig
+            {
+                Id = "rule_test_1",
+                Name = "テスト集会イベント",
+                TargetType = RuleTargetType.GroupInstance,
+                TargetValue = "grp_test_0000",
+                TargetGroupId = "grp_test_0000",
+                TargetGroupName = "Test group [TEST]",
+                TargetStatus = "unchanged",
+                TargetStatusDescription = "テストイベント参加中 🌟",
+                IsEnabled = true
+            });
+            vm.CustomRules.Add(new RuleConfig
+            {
+                Id = "rule_test_2",
+                Name = "テスト会場ワールド",
+                TargetType = RuleTargetType.WorldId,
+                TargetValue = "wrld_test_event",
+                TargetGroupId = "grp_test_0001",
+                TargetGroupName = "Default group [DFLT]",
+                TargetStatus = "ask me",
+                TargetStatusDescription = "テスト集会中 🍸",
+                IsEnabled = true
+            });
+            vm.CustomRules.Add(new RuleConfig
+            {
+                Id = "rule_test_3",
+                Name = "テスト用作業部屋",
+                TargetType = RuleTargetType.WorldName,
+                TargetValue = "Test Study Room",
+                TargetGroupId = "",
+                TargetGroupName = "(バナー掲示なし)",
+                TargetStatus = "busy",
+                TargetStatusDescription = "テスト作業集中モード",
+                IsEnabled = true
+            });
+
+            vm.ActivityLogs.Clear();
+            vm.ActivityLogs.Add(new ActivityLogItem { Timestamp = DateTime.Now.AddMinutes(-5), Level = LogLevel.Info, Message = "アプリケーションを起動しました。" });
+            vm.ActivityLogs.Add(new ActivityLogItem { Timestamp = DateTime.Now.AddMinutes(-4), Level = LogLevel.Success, Message = "ログインに成功しました (Test user / テストユーザー)" });
+            vm.ActivityLogs.Add(new ActivityLogItem { Timestamp = DateTime.Now.AddMinutes(-2), Level = LogLevel.Info, Message = "ワールド「テストワールド」に入場しました。" });
+            vm.ActivityLogs.Add(new ActivityLogItem { Timestamp = DateTime.Now.AddMinutes(-2), Level = LogLevel.Success, Message = "グループインスタンス(Group+)を検知: 「Test group」を自動掲示しました。" });
+            vm.ActivityLogs.Add(new ActivityLogItem { Timestamp = DateTime.Now.AddMinutes(-2), Level = LogLevel.Success, Message = "ステータスメッセージを「テストイベント参加中 🌟」に更新しました。" });
+
+            return vm;
         }
     }
 }
