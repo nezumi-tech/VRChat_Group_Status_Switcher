@@ -34,8 +34,8 @@ VRChatのグループイベント参加時に**グループバナー（掲示グ
 
 ## 📦 ダウンロード
 ビルド済みの最新バイナリは [GitHub Releases](https://github.com/nezumi-tech/VRChat_Group_Status_Switcher/releases) からダウンロードできます：
-- **`VRCGroupSwitcher-win-x64.zip`**: 軽量版（要 [.NET 10.0 Desktop Runtime](https://dotnet.microsoft.com/download) / サイズ約700KB）
-- **`VRCGroupSwitcher-win-x64-standalone.zip`**: スタンドアロン版（ランタイム同梱、インストール不要で即動作）
+- **`VRCGroupSwitcher-win-x64.zip`**: 単一実行ファイル（サイズ約700KB）
+  - ※実行環境に [.NET 10.0 Desktop Runtime](https://dotnet.microsoft.com/download) が必要です。
 
 ---
 
@@ -63,7 +63,6 @@ dotnet publish -c Release -r win-x64 --self-contained false -p:PublishSingleFile
 
 - 出力先: `PublishApp\VRCGroupSwitcher.exe`
 - ※実行環境に [.NET 10.0 Desktop Runtime](https://dotnet.microsoft.com/download) が必要です（サイズは約700KBと非常に軽量になります）。
-- ランタイムを同梱した自己完結型（Self-contained）にしたい場合は、`--self-contained true` を指定してください。
 
 ---
 
