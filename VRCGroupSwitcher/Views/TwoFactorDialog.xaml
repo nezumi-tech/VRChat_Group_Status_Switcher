@@ -1,0 +1,56 @@
+<Window x:Class="VRCGroupSwitcher.Views.TwoFactorDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="2段階認証コード入力" Height="310" Width="420"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="#0F172A"
+        Foreground="#F8FAFC">
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="#3B82F6"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="🔐 2段階認証 (2FA)" FontSize="18" FontWeight="Bold" Foreground="#38BDF8"/>
+        
+        <TextBlock Grid.Row="1" x:Name="TxtPrompt" Margin="0,12,0,0" TextWrapping="Wrap" Foreground="#94A3B8"
+                   Text="認証アプリ(TOTP)またはメールに送信された確認コードを入力してください。"/>
+
+        <TextBox Grid.Row="2" x:Name="TxtCode" Margin="0,18,0,0" Height="52" FontSize="22" FontWeight="Bold"
+                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Padding="4,2"
+                 MaxLength="8" Background="#1E293B" Foreground="#38BDF8" BorderBrush="#0EA5E9" BorderThickness="1.5"
+                 KeyDown="TxtCode_KeyDown"/>
+
+        <TextBlock Grid.Row="3" x:Name="TxtError" Margin="0,8,0,0" Foreground="#EF4444" Visibility="Collapsed"
+                   Text="コードを入力してください。"/>
+
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Content="キャンセル" Background="#334155" Margin="0,0,10,0" Click="BtnCancel_Click"/>
+            <Button Content="認証する" Background="#0EA5E9" Click="BtnSubmit_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

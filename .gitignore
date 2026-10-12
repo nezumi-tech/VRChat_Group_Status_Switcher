@@ -1,0 +1,30 @@
+# User request: Ignore PublishApp directory
+PublishApp/
+
+# Local .NET tools
+.dotnet/
+
+# Build results
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio / IDE files
+.vs/
+.vscode/
+.idea/
+*.user
+*.userprefs
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Credentials, tokens, and local config files
+auth.dat
+*.dat
+config.json
+*.local.json
+
+# Local scripts
+start.bat
