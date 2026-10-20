@@ -61,7 +61,7 @@ namespace VRCGroupSwitcher.Services
         public static string GetCurrentInformationalVersion()
         {
             var attr = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>();
-            string raw = attr?.InformationalVersion ?? Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.0";
+            string raw = attr?.InformationalVersion ?? Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.1.0";
             return raw.Split('+')[0].Trim();
         }
 
