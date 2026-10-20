@@ -23,6 +23,14 @@ public partial class App : System.Windows.Application
             e.Handled = true;
         };
 
+        // WinFormsコンポーネント (NotifyIcon等) の未処理例外をキャッチ
+        System.Windows.Forms.Application.SetUnhandledExceptionMode(System.Windows.Forms.UnhandledExceptionMode.CatchException);
+        System.Windows.Forms.Application.ThreadException += (s, e) =>
+        {
+            string msg = $"通知領域またはUIエラーが発生しました: {e.Exception.Message}\n\n詳細:\n{e.Exception.StackTrace}";
+            System.Windows.MessageBox.Show(msg, "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+        };
+
         AppDomain.CurrentDomain.UnhandledException += (s, e) =>
         {
             if (e.ExceptionObject is Exception ex)

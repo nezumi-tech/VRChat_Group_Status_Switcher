@@ -18,6 +18,7 @@ namespace VRCGroupSwitcher
 
         private System.Windows.Forms.NotifyIcon? _notifyIcon;
         private bool _isExplicitExit = false;
+        private bool _isActivating = false;
 
         private bool _isInitialized = false;
 
@@ -62,7 +63,11 @@ namespace VRCGroupSwitcher
             {
                 WindowState = WindowState.Minimized;
                 ShowInTaskbar = false;
-                Hide();
+
+                // HWNDを安全に初期化（画面には表示しない）。
+                // これによりトレイアイコンクリック時の初回Show()でVisualTarget例外が発生するのを防ぐ
+                var helper = new System.Windows.Interop.WindowInteropHelper(this);
+                helper.EnsureHandle();
 
                 // startInTray時はLoadedイベントが発火しないため、直ちに初期化を実行
                 _ = EnsureInitializedAsync();
@@ -155,7 +160,7 @@ namespace VRCGroupSwitcher
             contextMenu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
 
             var showItem = new System.Windows.Forms.ToolStripMenuItem("ウィンドウを表示 (&O)");
-            showItem.Click += (s, e) => ShowAndActivate();
+            showItem.Click += (s, e) => Dispatcher.BeginInvoke(new Action(ShowAndActivate));
             contextMenu.Items.Add(showItem);
 
             contextMenu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
@@ -187,13 +192,13 @@ namespace VRCGroupSwitcher
 
             _notifyIcon.ContextMenuStrip = contextMenu;
 
-            // 左クリックまたはダブルクリックでウィンドウを表示
-            _notifyIcon.DoubleClick += (s, e) => ShowAndActivate();
+            // 左クリックまたはダブルクリックでウィンドウを表示（WinFormsコールバックからWPFのDispatcherに非同期委譲）
+            _notifyIcon.DoubleClick += (s, e) => Dispatcher.BeginInvoke(new Action(ShowAndActivate));
             _notifyIcon.MouseClick += (s, e) =>
             {
                 if (e.Button == System.Windows.Forms.MouseButtons.Left)
                 {
-                    ShowAndActivate();
+                    Dispatcher.BeginInvoke(new Action(ShowAndActivate));
                 }
             };
         }
@@ -218,14 +223,46 @@ namespace VRCGroupSwitcher
 
         public void ShowAndActivate()
         {
-            Show();
-            ShowInTaskbar = true;
-            if (WindowState == WindowState.Minimized)
+            if (!Dispatcher.CheckAccess())
             {
-                WindowState = WindowState.Normal;
+                Dispatcher.BeginInvoke(new Action(ShowAndActivate));
+                return;
             }
-            Activate();
-            Focus();
+
+            if (_isActivating) return;
+            _isActivating = true;
+
+            try
+            {
+                var helper = new System.Windows.Interop.WindowInteropHelper(this);
+                if (helper.Handle == IntPtr.Zero)
+                {
+                    helper.EnsureHandle();
+                }
+
+                ShowInTaskbar = true;
+
+                if (WindowState == WindowState.Minimized)
+                {
+                    WindowState = WindowState.Normal;
+                }
+
+                if (!IsVisible)
+                {
+                    Show();
+                }
+
+                Activate();
+                Focus();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] ShowAndActivate error: {ex.Message}");
+            }
+            finally
+            {
+                _isActivating = false;
+            }
         }
 
         public void ExitApplication()
