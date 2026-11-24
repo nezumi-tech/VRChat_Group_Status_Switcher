@@ -19,6 +19,7 @@ namespace VRCGroupSwitcher
         private System.Windows.Forms.NotifyIcon? _notifyIcon;
         private bool _isExplicitExit = false;
         private bool _isActivating = false;
+        private readonly bool _startInTray = false;
 
         private bool _isInitialized = false;
 
@@ -42,6 +43,7 @@ namespace VRCGroupSwitcher
 
         public MainWindow(bool startInTray)
         {
+            _startInTray = startInTray;
             InitializeComponent();
 
             _settingsService = new SettingsService();
@@ -83,6 +85,26 @@ namespace VRCGroupSwitcher
             if (_isInitialized) return;
             _isInitialized = true;
             await _viewModel.InitializeAsync();
+
+            // スタートアップ等のトレイ常駐起動時にセッション切れ等で再ログインが必要な場合、
+            // ウィンドウを表示してユーザーに通知する
+            if (!_viewModel.IsLoggedIn && (_startInTray || !IsVisible || WindowState == WindowState.Minimized))
+            {
+                _ = Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    ShowAndActivate();
+
+                    if (_notifyIcon != null)
+                    {
+                        _notifyIcon.ShowBalloonTip(
+                            5000,
+                            "再ログインが必要です",
+                            "VRChatのログインセッションが切れています。ウィンドウから再ログインしてください。",
+                            System.Windows.Forms.ToolTipIcon.Warning);
+                    }
+                }));
+            }
+
             _ = CheckForUpdatesOnStartupAsync();
         }
 
